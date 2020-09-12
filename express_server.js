@@ -1,3 +1,4 @@
+ 
 const express = require ('express');
 const app = express();
 const PORT = 8080;
@@ -30,8 +31,8 @@ function generateRandomString() {
 
 
 const urlDatabase = { 
-'b2xVn2': 'http://www.lighthouselabs.ca',
-'9sm5xK': 'http://www.google.com'
+'b2xVn2': {longURL:'http://www.lighthouselabs.ca', id: "userRandomID"} ,
+'9sm5xK': {longURL: 'http://www.google.com', id: "userRandomID"}
 };
 
 const users= {
@@ -64,23 +65,27 @@ function checkPassword (passowrd) {
   return false;
 }
 
-// function getId (email) {
-//   for (const k in users) {
-//     if (users[k].email === email) {
-//       return k;
-//     }
 
-//   }
-
-// }
+function urlsForUser(id) {
+  const partialDatabase = {}
+  for (const key in urlDatabase) {
+    if(urlDatabase[key].id === id) {
+      partialDatabase[key] = urlDatabase[key]
+    }
+  }
+  console.log('Mypartial', partialDatabase);
+  return partialDatabase;
+}
 
 app.get('/', (req, res) => {
   res.send('Hello');
 });
 
 app.get("/urls", (req, res) => {
-  let templateVars = { urls: urlDatabase,  userObj: users[req.cookies["id"]] };
-  console.log(templateVars);
+  console.log('id',req.cookies['id']);
+  const userDatabase = urlsForUser(req.cookies['id']);
+  let templateVars = { urls: userDatabase,  userObj: users[req.cookies["id"]] };
+  //console.log(templateVars);
   res.render("urls_index", templateVars);
 });
 
@@ -91,41 +96,62 @@ app.get('/urls/new', (req, res) => {
 
 app.post("/urls", (req, res) => {
   const newShortURL = generateRandomString();
-  urlDatabase[newShortURL] = req.body.longURL;
-  console.log(newShortURL);
+  //urlDatabase[newShortURL] = req.body.longURL;
+  urlDatabase[newShortURL] = {longURL: req.body.longURL, id: req.cookies['id']};
+  console.log(urlDatabase);
   res.redirect(`/urls/${newShortURL}`)
 });
 app.get('/urls/:shortURL', (req, res) => {
-  let templateVars = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL],  userObj: users[req.cookies["id"]]};
+  let templateVars = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL,  userObj: users[req.cookies["id"]]};
+  console.log('long',urlDatabase[req.params.shortURL].longURL);
   res.render('urls_show', templateVars);
 });
 
 app.get('/u/:shortURL', (req, res) => {
   const longURLKey = req.params.shortURL;
   //console.log(req.params);
-  let longURL = urlDatabase[longURLKey];
+  let longURL = urlDatabase[longURLKey].longURL;
   res.redirect(longURL);
 });
 
 app.get('/urls/:shortURL/edit', (req, res) => {
-   let templateVars = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
-   console.log(req.params.shortURL);
+   //let templateVars = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+   //console.log(req.params.shortURL);
+   const userDatabase = urlsForUser(req.cookies['id']);
   shortURL = req.params.shortURL;
-  res.redirect(`/urls/${shortURL}`);
+  if (userDatabase[shortURL]) {
+    res.redirect(`/urls/${shortURL}`);
+  } else {
+    res.send('You can not edit this URL');
+  }
+  
 });
 app.post('/urls/:shortURL/edit', (req, res) => {
-  urlDatabase[req.params.shortURL] = req.body.longURL;
+  const userDatabase = urlsForUser(req.cookies['id']);
+  console.log('edit', userDatabase[req.params.shortURL])
+  userDatabase[req.params.shortURL].longURL = req.body.longURL;
   res.redirect('/urls');
 });
 app.get('/urls/:shortUrl/delete', (req, res) => {
-  let templateVars = {userObj: users[req.cookies["id"]]};
-  res.render('urls_index', templateVars);
+  const userDatabase = urlsForUser(req.cookies['id']);
+  let templateVars = {urls: userDatabase,  userObj: users[req.cookies["id"]] };
+  if (userDatabase[req.body.shortURL]) {
+    res.render('urls_index', templateVars);
+  } else {
+    res.send('<html><body><h3>You can not delete a link that you don\'t own!!!</h3></body></html>')
+  }
+  
 });
 
 app.post('/urls/:shortURL/delete', (req, res) => {
-  console.log(urlDatabase[req.params.shortURL]);
-  delete urlDatabase[req.params.shortURL];
-  res.redirect('/urls');
+  const userDatabase = urlsForUser(req.cookies['id']);
+  console.log('user', userDatabase[req.params.shortURL])
+  if (userDatabase[req.params.shortURL]) {
+      delete urlDatabase[req.params.shortURL];
+      res.redirect('/urls');
+  } else {
+    res.send('<html><body><h3>You can not delete a link that you don\'t own!!!</h3></body></html>')
+  }
 });
 app.get('/urls.json', (req, res) => {
   res.json(urlDatabase);
