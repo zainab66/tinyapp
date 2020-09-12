@@ -8,20 +8,20 @@
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
+      </div>
+    </div>
         <%if(userObj){%>
           <form class="form-inline" action="/logout" method="POST">
             <div class="form-group mb-2">
               <h6>logged in as: <%=userObj.email%></h6>
-              <button type="logout" class="btn btn-primary">logout</button>
+              <button type="logout" class="btn btn-primary" style="margin: 10px">logout</button>
             </div>
           </form>
         <%} else {%>
          <a class="nav-item nav-link" href="/register">Register</a>
          <a class="nav-item nav-link" href="/login">Login</a>
          <% } %>
-        
-        
-      </div>
-    </div>
+      
+    
   </nav>
 </header>

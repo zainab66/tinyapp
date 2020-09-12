@@ -55,10 +55,10 @@ const users= {
   }
 };
 
-function checkEmail(email) {
-  for (const id in users) {
-    console.log(users[id].email, email );
-    if (users[id].email === email) {
+function getUserByEmail(usersDatabase, email) {
+  for (const id in usersDatabase) {
+    console.log(usersDatabase[id].email, email );
+    if (usersDatabase[id].email === email) {
       return id;
     }
   }
@@ -174,7 +174,7 @@ app.get('/login', (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-  const id = checkEmail(req.body.email);
+  const id = getUserByEmail(users,req.body.email);
   if (id) {
     if (checkPassword(req.body.password)){
       req.session.id = id;
@@ -202,7 +202,7 @@ app.get('/register', (req, res) => {
 
 app.post('/register', (req, res) => {
   if (req.body.email) {
-    if (!(checkEmail(req.body.email))) {
+    if (!(getUserByEmail(users, req.body.email))) {
       const userId = generateRandomString();
       users[userId] = {id: userId, email: req.body.email, password: bcrypt.hashSync(req.body.password , 10)} ;
       req.session.id =  userId;

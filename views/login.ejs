@@ -10,16 +10,14 @@
 </head>
 <body>
   <%- include('partials/_header') %>
-  <main style="margin: 1em;"></main>
-    <h3>Login</h3>
-    <form class="form-inline" action ='/login' method="POST">
-      <div class = "from-group mb-2">
+  <main style="margin-left: 30px;"></main>
+    <form class="form-group" style="margin: 30px;" action ='/login' method="POST">
+        <h3>Login</h3>
         <label for= "email">Email</label>
-        <label for= "passowrd">Password</label>
         <input name = email type="email">
-      <input name = password type="password">
-      <button>Login</button>
-      </div>
+        <label for= "passowrd">Password</label>
+        <input name = password type="password">
+        <button>Login</button>
     </form>
   </main>
    <!-- Bootstrap JS -->
